@@ -1,11 +1,19 @@
-const sorter = function(direction, sortBy, a, b) {
-  a = sortBy(a);
-  b = sortBy(b);
+const sorter = function(direction, sortBy, subSort, a, b) {
+  const valA = sortBy(a);
+  const valB = sortBy(b);
 
-  if (a == null) return 1;
-  if (b == null) return -1;
-  if (a === b) return 0;
-  if (a < b) return direction;
+  if (valA == null) return 1;
+  if (valB == null) return -1;
+  if (valA === valB) {
+    // Sort by additional properties if provided
+    if (subSort && subSort.length) {
+      const nextInLine = subSort.shift();
+      return sorter(direction, nextInLine, subSort, a, b);
+    }
+    return 0;
+  }
+
+  if (valA < valB) return direction;
   return -direction;
 };
 
@@ -16,7 +24,11 @@ const emptySortBy = (a) => a;
 
 const sort = function(ctx, sortBy = emptySortBy, _sorter) {
   if (Array.isArray(ctx)) {
-    return ctx.sort(_sorter.bind(null, sortBy));
+    const sorterFun = Array.isArray(sortBy)
+      ? _sorter.bind(null, sortBy.shift(), sortBy)
+      : _sorter.bind(null, sortBy, undefined);
+
+    return ctx.sort(sorterFun);
   }
   return ctx;
 };
